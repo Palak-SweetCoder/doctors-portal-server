@@ -75,7 +75,7 @@ async function run() {
 
         app.post('/booking', async (req, res) => {
             const booking = req.body;
-            // ----------check if user already booked start-------------
+            // ----------check if user already booked start-----------
             const query = {
                 treatment: booking.treatment,
                 date: booking.date,
