@@ -25,6 +25,9 @@ async function run() {
         const serviceCollection = client
             .db('doctorsPortal')
             .collection('services');
+        const bookingCollection = client
+            .db('doctorsPortal')
+            .collection('bookings');
 
         app.get('/service', async (req, res) => {
             const query = {};
@@ -40,6 +43,23 @@ async function run() {
          * app.patch('/booking/:id') ----update a booking
          * app.delete('/booking/:id') ----delete a booking
          */
+
+        app.post('/booking', async (req, res) => {
+            const booking = req.body;
+            // ----------check if user already booked start-------------
+            const query = {
+                treatment: booking.treatment,
+                date: booking.date,
+                patient: booking.patient,
+            };
+            const exists = await bookingCollection.findOne(query);
+            if (exists) {
+                return res.send({ success: false, booking: exists });
+            }
+            // ----------check if user already booked end-------------
+            const result = await bookingCollection.insertOne(booking);
+            return res.send({ success: true, result });
+        });
     } finally {
         //client.close();
     }
