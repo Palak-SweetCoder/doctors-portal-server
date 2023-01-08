@@ -35,6 +35,35 @@ async function run() {
             const services = await cursor.toArray();
             res.send(services);
         });
+
+        // ------to get the booking collection data for reset the service depending on which one is booked-------
+        //------disclaimer------ this is not the proper way to query
+        //------disclaimer------ after learning more mongodb. use aggregate lookup, pipeline, match, group
+        app.get('/available', async (req, res) => {
+            const date = req.query.date || 'Jan 8, 2023';
+            // step-1: get all services
+            const services = await serviceCollection.find().toArray();
+            // step-2: get the bookings of the day
+            const query = { date: date };
+            const bookings = await bookingCollection.find(query).toArray();
+            // step-3: for each service
+            services.forEach((service) => {
+                // step-4: find bookings for that service
+                const serviceBookings = bookings.filter(
+                    (b) => b.treatment === service.name
+                );
+                // step-5: select slots for the service booking
+                const bookedSlots = serviceBookings.map((s) => s.slot);
+                // step-6: select those slots that are not in bookedSlots
+                const available = service.slots.filter(
+                    (s) => !bookedSlots.includes(s)
+                );
+                // step-7: set available to make it easier
+                service.slots = available;
+            });
+            res.send(services);
+        });
+
         /**
          * API Naming Convention
          * app.get('/booking') ----get all bookings in this collection. or get more than one or by filter
